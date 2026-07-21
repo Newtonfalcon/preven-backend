@@ -1,4 +1,4 @@
 .env
-.env*
+
 .package.json
 .package-lock.json
