@@ -1,23 +1,10 @@
 import { GoogleGenAI } from "@google/genai/node"
-import multer from "multer"
 import VisualLog from '../models/visualLog.js'
 
 import "dotenv/config"
 
-
-
 const apikey = process.env.GEMINI_API_KEY
 const ai = new GoogleGenAI({ apiKey: apikey })
-
-const storage = multer.memoryStorage()
-
-const upload = multer({
-  storage,
-  limits: {
-    fileSize: 10 * 1024 * 1024
-  }
-})
-
 
 export const scan = async (req, res) => {
   try {

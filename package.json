@@ -13,11 +13,13 @@
   "dependencies": {
     "@clerk/express": "^2.1.41",
     "@google/genai": "^2.11.0",
+    "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "mongodb": "^7.5.0",
     "mongoose": "^9.7.4",
     "multer": "^2.2.0",
+    "openai": "^6.48.0",
     "svix": "^1.98.0"
   },
   "devDependencies": {

@@ -5,11 +5,8 @@ export const requireAuth = async (req, res, next) => {
   try {
     // ALWAYS use getAuth(req) with @clerk/express
     const { userId } = getAuth(req);
-    console.log(req)
-    console.log(userId)
 
     if (!userId) {
-      console.log("please log in")
       return res.status(401).json({ error: 'Unauthorized. Missing or invalid token.' });
     }
 
@@ -28,6 +25,7 @@ export const requireAuth = async (req, res, next) => {
     }
 
     req.user = user;
+    req.userId = userId; // Clerk id, kept alongside req.user for controllers that only need the id
     next();
   } catch (error) {
     console.error('Auth Middleware Error:', error);
