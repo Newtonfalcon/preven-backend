@@ -106,3 +106,30 @@ export const scan = async (req, res) => {
 
   }
 }
+
+
+// ------------------------------ ---------- ----- ----
+// a quick seperation if not omo
+//----------------------      ------
+
+// GET /api/visual-log/:id
+export const getVisualLogById = async (req, res) => {
+  try {
+    const log = await VisualLog.findOne({
+      _id: req.params.id,
+      userId: req.userId // Security check: user can only view their own logs
+    });
+
+    if (!log) {
+      return res.status(404).json({ error: "Tracking record not found" });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: log
+    });
+  } catch (error) {
+    console.error("Fetch log error:", error);
+    return res.status(500).json({ error: "Failed to retrieve tracking log" });
+  }
+};

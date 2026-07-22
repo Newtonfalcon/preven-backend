@@ -7,7 +7,7 @@ import { connectDB } from './db.js'
 import scanRouter from './routes/scanRoute.js'
 import syncRouter from './routes/syncRoute.js'
 import userRouter from './routes/userRoute.js'
-import { summarizeText } from './controllers/summary.js'
+import { summarizeText } from './utils/summarizer.js'
 
 const app = express()
 const port = process.env.PORT || 3000
@@ -56,31 +56,7 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok' })
 })
 
-app.post('/sum', async (req, res) => {
-  const { summary } = req.body;
 
-  if (!summary) {
-    return res.status(400).json({
-      status: false,
-      message: "No summary provided"
-    });
-  }
-
-  try {
-    // Renamed variable to summaryResult to avoid shadowing express 'res'
-    const summaryResult = await summarizeText(summary);
-
-    return res.status(200).json({
-      status: true,
-      message: summaryResult
-    });
-  } catch (error) {
-    return res.status(500).json({
-      status: false,
-      message: error.message || "An unexpected error occurred"
-    });
-  }
-});
 
 // 404 fallback
 app.use((req, res) => {
