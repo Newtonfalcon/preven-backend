@@ -1,22 +1,21 @@
-import { GoogleGenAI } from "@google/genai/node"
-import VisualLog from '../models/visualLog.js'
+import { GoogleGenAI } from "@google/genai";
+import VisualLog from '../models/visualLog.js';
+import "dotenv/config";
 
-import "dotenv/config"
-
-const apikey = process.env.GEMINI_API_KEY
-const ai = new GoogleGenAI({ apiKey: apikey })
+const apikey = process.env.GEMINI_API_KEY;
+const ai = new GoogleGenAI({ apiKey: apikey });
 
 export const scan = async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({
         error: "missing image payload file."
-      })
+      });
     }
 
     const imageBuffer = req.file.buffer;
     const userNotes = req.body.notes || "No extra history provided.";
-    const targetUserId = req.userId
+    const targetUserId = req.userId;
     const structuredPrompt = `
           You are the specialized computer vision and text translation layer for Preven.
           Analyze this user-uploaded skin tracking image.
@@ -67,50 +66,77 @@ export const scan = async (req, res) => {
               type: 'STRING',
               description: 'Short status tag conclusion, e.g., "Stable Baseline" or "Review Flagged"'
             }
-
           },
           required: ['asymmetryScore', 'borderProfile', 'estimatedDiameterMm', 'summaryMarkdown', 'trackingStatus']
-
         }
       }
     });
 
-    const evaluationPayload = JSON.parse(response?.text)
-
-
+    const evaluationPayload = JSON.parse(response?.text);
 
     const savedLog = await VisualLog.create({
-          userId: targetUserId,
-          metrics: {
-            asymmetryScore: evaluationPayload.asymmetryScore,
-            borderProfile: evaluationPayload.borderProfile,
-            estimatedDiameterMm: evaluationPayload.estimatedDiameterMm
-          },
-          summaryMarkdown: evaluationPayload.summaryMarkdown,
-          trackingStatus: evaluationPayload.trackingStatus,
-          userNotes: userNotes
-        });
+      userId: targetUserId,
+      metrics: {
+        asymmetryScore: evaluationPayload.asymmetryScore,
+        borderProfile: evaluationPayload.borderProfile,
+        estimatedDiameterMm: evaluationPayload.estimatedDiameterMm
+      },
+      summaryMarkdown: evaluationPayload.summaryMarkdown,
+      trackingStatus: evaluationPayload.trackingStatus,
+      userNotes: userNotes
+    });
 
-
-
-    res.json({
+    return res.json({
       success: true,
       logId: savedLog._id,
       data: evaluationPayload
-    })
+    });
 
   } catch (error) {
     console.error('Server pipeline exception:', error);
-        res.status(500).json({ error: 'Failed to process visual tracking matrix safely.' });
-
-
+    return res.status(500).json({ error: 'Failed to process visual tracking matrix safely.' });
   }
-}
+};
 
+// GET /api/visual-log/all
+export const getAllVisaulLogs = async (req, res) => {
+  try {
+    const targetUserId = req.userId;
+    const page = parseInt(req.query.page, 10) || 1;
+    const limit = parseInt(req.query.limit, 10) || 10;
 
-// ------------------------------ ---------- ----- ----
-// a quick seperation if not omo
-//----------------------      ------
+    const skip = (page - 1) * limit;
+    const [logs, totalDocs] = await Promise.all([
+      VisualLog.find({ userId: targetUserId })
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .lean(),
+      VisualLog.countDocuments({ userId: targetUserId })
+    ]);
+
+    const totalPages = Math.ceil(totalDocs / limit);
+
+    return res.status(200).json({
+      success: true,
+      pagination: {
+        totalDocs,
+        totalPages,
+        currentPage: page,
+        limit,
+        hasNextPage: page < totalPages,
+        hasPrevPage: page > 1,
+      },
+      data: logs,
+    });
+
+  } catch (error) {
+    console.error('Fetch All Visual Logs Error:', error);
+    return res.status(500).json({
+      error: 'Failed to retrieve visual tracking logs from the database.',
+    });
+  } // <-- THIS WAS MISSING
+};
 
 // GET /api/visual-log/:id
 export const getVisualLogById = async (req, res) => {

@@ -2,9 +2,10 @@ import mongoose from 'mongoose';
 
 const summaryCacheSchema = new mongoose.Schema(
   {
+    // The unique identifier from Clerk (matches VisualLogSchema.userId) —
+    // NOT a Mongo ObjectId ref, since req.userId is Clerk's string id.
     userId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
+      type: String,
       required: true,
       index: true,
     },

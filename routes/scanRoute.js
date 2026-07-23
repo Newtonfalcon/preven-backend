@@ -1,6 +1,6 @@
 import express from 'express'
 import multer from 'multer'
-import { getVisualLogById, scan } from '../controllers/scan.js'
+import { getAllVisaulLogs, getVisualLogById, scan } from '../controllers/scan.js'
 import { requireAuth } from '../middleware/auth.middle.js'
 import { getUserLongitudinalSummary } from '../controllers/summary.js'
 
@@ -16,6 +16,7 @@ const upload = multer({
 
 // Protected: requires a signed-in Clerk user before the image is accepted
 router.post('/scan', requireAuth, upload.single('photo'), scan)
+router.get('/get-logs', requireAuth, getAllVisaulLogs)
 router.get('/log/:id', requireAuth, getVisualLogById);
 router.get('/summary', requireAuth, getUserLongitudinalSummary);
 
